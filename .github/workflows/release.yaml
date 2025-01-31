@@ -19,7 +19,7 @@ jobs:
       - name: Setup Go Environment
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: marzban/go.mod
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
