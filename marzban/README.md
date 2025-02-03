@@ -13,6 +13,7 @@ Key features:
 - Automatic handling of existing users
 - Support for environment variables
 - Customizable traffic reset strategy
+- Flexible status handling
 
 ### Migrated User Fields
 
@@ -21,7 +22,7 @@ The following user fields are migrated from Marzban to Remnawave:
 | Field                | Description                                              |
 | -------------------- | -------------------------------------------------------- |
 | Username             | User's unique identifier                                 |
-| Status               | User's status (active/disabled)                          |
+| Status               | User's status (can be preserved or set to ACTIVE)        |
 | ShortUUID            | Generated from subscription URL hash                     |
 | TrojanPassword       | Password for Trojan protocol                             |
 | VlessUUID            | UUID for VLESS protocol                                  |
@@ -45,19 +46,29 @@ The tool can be configured using command-line flags or environment variables:
 | `--batch-size`        | `BATCH_SIZE`         | Number of users to process in one batch | 100      |
 | `--last-users`        | `LAST_USERS`         | Only migrate last N users               | 0 (all)  |
 | `--calendar-strategy` | `CALENDAR_STRATEGY`  | Force CALENDAR_MONTH reset strategy     | false    |
+| `--preserve-status`   | `PRESERVE_STATUS`    | Preserve user status from Marzban       | false    |
 
 ## Usage
 
 ### Basic Usage
 
 ```bash
-# Migrate all users
+# Migrate all users (sets all users to ACTIVE status)
 ./marzban-migration-tool \
     --marzban-url="http://marzban.example.com" \
     --marzban-username="admin" \
     --marzban-password="password" \
     --remnawave-url="http://remnawave.example.com" \
     --remnawave-token="your-token"
+```
+
+### Preserve User Status
+
+```bash
+# Migrate users preserving their original status
+./marzban-migration-tool \
+    [other flags...] \
+    --preserve-status
 ```
 
 ### Migrate Last N Users
@@ -89,6 +100,7 @@ export REMNAWAVE_TOKEN="your-token"
 export BATCH_SIZE="200"
 export LAST_USERS="50"
 export CALENDAR_STRATEGY="true"
+export PRESERVE_STATUS="true"
 
 ./marzban-migration-tool
 ```

@@ -12,13 +12,15 @@ type Migrator struct {
 	source           *marzban.Panel
 	destination      *remnawave.Panel
 	CalendarStrategy bool
+	PreserveStatus   bool
 }
 
-func New(source *marzban.Panel, destination *remnawave.Panel, CalendarStrategy bool) *Migrator {
+func New(source *marzban.Panel, destination *remnawave.Panel, calendarStrategy bool, preserveStatus bool) *Migrator {
 	return &Migrator{
 		source:           source,
 		destination:      destination,
-		CalendarStrategy: CalendarStrategy,
+		CalendarStrategy: calendarStrategy,
+		PreserveStatus:   preserveStatus,
 	}
 }
 
@@ -64,7 +66,7 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 			}
 
 			processed := user.Process()
-			createReq := processed.ToCreateUserRequest(m.CalendarStrategy)
+			createReq := processed.ToCreateUserRequest(m.CalendarStrategy, m.PreserveStatus)
 
 			log.Printf("Processing user %d: %s", offset+i+1, processed.Username)
 
