@@ -30,7 +30,7 @@ func main() {
 
 	remnaPanel := remnawave.NewPanel(cfg.RemnawaveURL, cfg.RemnawaveToken)
 
-	m := migrator.New(marzbanPanel, remnaPanel, cfg.CalendarStrategy)
+	m := migrator.New(marzbanPanel, remnaPanel, cfg.CalendarStrategy, cfg.PreserveStatus)
 	if err := m.MigrateUsers(cfg.BatchSize, cfg.LastUsers); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}

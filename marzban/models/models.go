@@ -88,15 +88,20 @@ type CreateUserRequest struct {
 	ActivateAllInbounds  bool   `json:"activateAllInbounds"`
 }
 
-func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool) CreateUserRequest {
+func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStatus bool) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
 	if forceMonthlyReset {
 		strategy = "CALENDAR_MONTH"
 	}
 
+	status := "ACTIVE"
+	if preserveStatus {
+		status = strings.ToUpper(p.Status)
+	}
+
 	return CreateUserRequest{
 		Username:             p.Username,
-		Status:               strings.ToUpper(p.Status),
+		Status:               status,
 		ShortUUID:            p.SubscriptionHash,
 		TrojanPassword:       p.TrojanPassword,
 		VlessUUID:            p.VlessID,

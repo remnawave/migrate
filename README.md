@@ -15,6 +15,7 @@ Features:
 - Selective migration of recent users
 - Customizable traffic reset strategy
 - Environment variables support
+- Flexible status handling
 
 [Learn more about Marzban Migration →](./marzban)
 
