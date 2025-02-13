@@ -75,17 +75,17 @@ func (u *MarzbanUser) Process() ProcessedUser {
 }
 
 type CreateUserRequest struct {
-	Username             string `json:"username"`
-	Status               string `json:"status"`
-	ShortUUID            string `json:"shortUuid"`
-	TrojanPassword       string `json:"trojanPassword"`
-	VlessUUID            string `json:"vlessUuid"`
-	SsPassword           string `json:"ssPassword"`
-	TrafficLimitBytes    int64  `json:"trafficLimitBytes"`
-	TrafficLimitStrategy string `json:"trafficLimitStrategy"`
-	ExpireAt             string `json:"expireAt"`
-	Description          string `json:"description"`
-	ActivateAllInbounds  bool   `json:"activateAllInbounds"`
+	Username             string  `json:"username"`
+	Status               string  `json:"status"`
+	ShortUUID            *string `json:"shortUuid,omitempty"`
+	TrojanPassword       *string `json:"trojanPassword,omitempty"`
+	VlessUUID            *string `json:"vlessUuid,omitempty"`
+	SsPassword           *string `json:"ssPassword,omitempty"`
+	TrafficLimitBytes    int64   `json:"trafficLimitBytes"`
+	TrafficLimitStrategy string  `json:"trafficLimitStrategy"`
+	ExpireAt             string  `json:"expireAt"`
+	Description          string  `json:"description"`
+	ActivateAllInbounds  bool    `json:"activateAllInbounds"`
 }
 
 func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStatus bool) CreateUserRequest {
@@ -99,22 +99,49 @@ func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStat
 		status = strings.ToUpper(p.Status)
 	}
 
-	return CreateUserRequest{
-		Username:             p.Username,
+	validUsername := ensureValidUsername(p.Username)
+
+	req := CreateUserRequest{
+		Username:             validUsername,
 		Status:               status,
-		ShortUUID:            p.SubscriptionHash,
-		TrojanPassword:       p.TrojanPassword,
-		VlessUUID:            p.VlessID,
-		SsPassword:           p.ShadowsocksPassword,
 		TrafficLimitBytes:    p.DataLimit,
 		TrafficLimitStrategy: strategy,
 		ExpireAt:             p.Expire,
 		Description:          p.Note,
 		ActivateAllInbounds:  true,
 	}
+
+	if p.SubscriptionHash != "" {
+		req.ShortUUID = strPtr(p.SubscriptionHash)
+	}
+	if p.TrojanPassword != "" {
+		req.TrojanPassword = strPtr(p.TrojanPassword)
+	}
+	if p.VlessID != "" {
+		req.VlessUUID = strPtr(p.VlessID)
+	}
+	if p.ShadowsocksPassword != "" {
+		req.SsPassword = strPtr(p.ShadowsocksPassword)
+	}
+
+	return req
 }
 
 type MarzbanUsersResponse struct {
 	Users []MarzbanUser `json:"users"`
 	Total int           `json:"total"`
+}
+
+func ensureValidUsername(username string) string {
+	if len(username) < 6 {
+		return username + strings.Repeat("_", 6-len(username))
+	}
+	return username
+}
+
+func strPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }

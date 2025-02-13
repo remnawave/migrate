@@ -66,7 +66,13 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 			}
 
 			processed := user.Process()
+			originalUsername := processed.Username
 			createReq := processed.ToCreateUserRequest(m.CalendarStrategy, m.PreserveStatus)
+
+			if originalUsername != createReq.Username {
+				log.Printf("Username %s was padded to %s to meet minimum length requirement",
+					originalUsername, createReq.Username)
+			}
 
 			log.Printf("Processing user %d: %s", offset+i+1, processed.Username)
 
