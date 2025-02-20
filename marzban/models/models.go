@@ -1,6 +1,7 @@
 package models
 
 import (
+	"marzban-migration-tool/util"
 	"strings"
 	"time"
 )
@@ -99,7 +100,7 @@ func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStat
 		status = strings.ToUpper(p.Status)
 	}
 
-	validUsername := ensureValidUsername(p.Username)
+	validUsername := util.SanitizeUsername(p.Username)
 
 	req := CreateUserRequest{
 		Username:             validUsername,
@@ -130,13 +131,6 @@ func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStat
 type MarzbanUsersResponse struct {
 	Users []MarzbanUser `json:"users"`
 	Total int           `json:"total"`
-}
-
-func ensureValidUsername(username string) string {
-	if len(username) < 6 {
-		return username + strings.Repeat("_", 6-len(username))
-	}
-	return username
 }
 
 func strPtr(s string) *string {

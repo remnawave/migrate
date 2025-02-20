@@ -70,7 +70,7 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 			createReq := processed.ToCreateUserRequest(m.CalendarStrategy, m.PreserveStatus)
 
 			if originalUsername != createReq.Username {
-				log.Printf("Username %s was padded to %s to meet minimum length requirement",
+				log.Printf("Username %s was sanitized to %s",
 					originalUsername, createReq.Username)
 			}
 
