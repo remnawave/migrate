@@ -92,12 +92,10 @@ type CreateUserRequest struct {
 func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
 
-	// Convert "YEAR" strategy to "NO_RESET" as Remnawave doesn't support it
 	if strategy == "YEAR" {
 		strategy = "NO_RESET"
 	}
 
-	// Override with preferred strategy if provided
 	if preferredStrategy != "" {
 		strategy = preferredStrategy
 	}

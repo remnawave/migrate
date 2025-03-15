@@ -24,7 +24,6 @@ func main() {
 		log.Fatal("Remnawave token is required")
 	}
 
-	// Validate PreferredStrategy if provided
 	if cfg.PreferredStrategy != "" {
 		validStrategies := map[string]bool{
 			"NO_RESET": true,
