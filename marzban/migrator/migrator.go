@@ -9,18 +9,18 @@ import (
 )
 
 type Migrator struct {
-	source           *marzban.Panel
-	destination      *remnawave.Panel
-	CalendarStrategy bool
-	PreserveStatus   bool
+	source            *marzban.Panel
+	destination       *remnawave.Panel
+	PreferredStrategy string
+	PreserveStatus    bool
 }
 
-func New(source *marzban.Panel, destination *remnawave.Panel, calendarStrategy bool, preserveStatus bool) *Migrator {
+func New(source *marzban.Panel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool) *Migrator {
 	return &Migrator{
-		source:           source,
-		destination:      destination,
-		CalendarStrategy: calendarStrategy,
-		PreserveStatus:   preserveStatus,
+		source:            source,
+		destination:       destination,
+		PreferredStrategy: preferredStrategy,
+		PreserveStatus:    preserveStatus,
 	}
 }
 
@@ -67,7 +67,7 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 
 			processed := user.Process()
 			originalUsername := processed.Username
-			createReq := processed.ToCreateUserRequest(m.CalendarStrategy, m.PreserveStatus)
+			createReq := processed.ToCreateUserRequest(m.PreferredStrategy, m.PreserveStatus)
 
 			if originalUsername != createReq.Username {
 				log.Printf("Username %s was sanitized to %s",
