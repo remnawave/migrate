@@ -89,10 +89,17 @@ type CreateUserRequest struct {
 	ActivateAllInbounds  bool    `json:"activateAllInbounds"`
 }
 
-func (p *ProcessedUser) ToCreateUserRequest(forceMonthlyReset bool, preserveStatus bool) CreateUserRequest {
+func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
-	if forceMonthlyReset {
-		strategy = "CALENDAR_MONTH"
+
+	// Convert "YEAR" strategy to "NO_RESET" as Remnawave doesn't support it
+	if strategy == "YEAR" {
+		strategy = "NO_RESET"
+	}
+
+	// Override with preferred strategy if provided
+	if preferredStrategy != "" {
+		strategy = preferredStrategy
 	}
 
 	status := "ACTIVE"
