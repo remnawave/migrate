@@ -60,7 +60,7 @@ The tool can be configured using command-line flags or environment variables:
 
 ```bash
 # Migrate all users (sets all users to ACTIVE status)
-./migration-tool \
+./remnawave-migrate \
     --panel-type=marzban \
     --panel-url="http://marzban.example.com" \
     --panel-username="admin" \
@@ -73,7 +73,7 @@ The tool can be configured using command-line flags or environment variables:
 
 ```bash
 # Migrate users preserving their original status
-./migration-tool \
+./remnawave-migrate \
     [other flags...] \
     --preserve-status
 ```
@@ -82,7 +82,7 @@ The tool can be configured using command-line flags or environment variables:
 
 ```bash
 # Migrate only the last 50 users
-./migration-tool \
+./remnawave-migrate \
     [other flags...] \
     --last-users=50
 ```
@@ -91,7 +91,7 @@ The tool can be configured using command-line flags or environment variables:
 
 ```bash
 # Migrate users with a specific reset strategy
-./migration-tool \
+./remnawave-migrate \
     [other flags...] \
     --preferred-strategy=MONTH
 ```
@@ -119,7 +119,7 @@ export LAST_USERS="50"
 export PREFERRED_STRATEGY="MONTH"
 export PRESERVE_STATUS="true"
 
-./migration-tool
+./remnawave-migrate
 ```
 
 ## Contribute
