@@ -232,20 +232,46 @@ func extractTrojanPassword(config string) string {
 }
 
 func extractShadowsocksPassword(config string) string {
-	re := regexp.MustCompile(`ss://([^#@]+)`)
-	matches := re.FindStringSubmatch(config)
-	if len(matches) > 1 {
-		decoded, err := base64.StdEncoding.DecodeString(matches[1])
-		if err != nil {
+	if !strings.HasPrefix(config, "ss://") {
+		return ""
+	}
+
+	base64Part := config[5:]
+
+	endIndex := strings.Index(base64Part, "#")
+	if endIndex != -1 {
+		base64Part = base64Part[:endIndex]
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(base64Part)
+	if err != nil {
+		return ""
+	}
+
+	decodedStr := string(decoded)
+
+	if strings.Contains(decodedStr, "@") {
+		parts := strings.SplitN(decodedStr, ":", 2)
+		if len(parts) != 2 {
 			return ""
 		}
 
-		parts := strings.SplitN(string(decoded), ":", 2)
-		if len(parts) == 2 {
-			return parts[1]
+		afterColon := parts[1]
+
+		passwordEnd := strings.Index(afterColon, "@")
+		if passwordEnd == -1 {
+			return ""
 		}
+
+		return afterColon[:passwordEnd]
+	} else {
+		parts := strings.SplitN(decodedStr, ":", 2)
+		if len(parts) != 2 {
+			return ""
+		}
+
+		return parts[1]
 	}
-	return ""
 }
 
 func getStringValue(s *string) string {
