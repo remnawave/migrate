@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"marzban-migration-tool/models"
+	"remnawave-migrate/models"
 )
 
 type Panel struct {
@@ -45,14 +45,14 @@ func (p *Panel) CreateUser(req models.CreateUserRequest) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusBadRequest {
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusInternalServerError {
 		body, _ := io.ReadAll(resp.Body)
 		var apiErr ApiError
 		if err := json.Unmarshal(body, &apiErr); err != nil {
 			return fmt.Errorf("failed to parse error response: %w", err)
 		}
 
-		if apiErr.ErrorCode == "A019" {
+		if apiErr.ErrorCode == "A019" || apiErr.ErrorCode == "A020" || apiErr.ErrorCode == "A021" || apiErr.ErrorCode == "A032" {
 			return &UserExistsError{
 				Username: req.Username,
 				ApiError: apiErr,

@@ -74,7 +74,6 @@ func TestEnsureValidUsername(t *testing.T) {
 	}
 }
 
-// TestUsernameLength ensures the function handles various length scenarios correctly
 func TestUsernameLength(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -111,7 +110,6 @@ func TestUsernameLength(t *testing.T) {
 	}
 }
 
-// TestRegexCompliance ensures all characters in the output comply with the regex pattern
 func TestRegexCompliance(t *testing.T) {
 	validPattern := regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 	tests := []string{

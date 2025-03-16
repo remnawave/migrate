@@ -1,10 +1,28 @@
 package models
 
 import (
-	"marzban-migration-tool/util"
+	"remnawave-migrate/util"
 	"strings"
 	"time"
 )
+
+type UsersResponse struct {
+	Users []User `json:"users"`
+	Total int    `json:"total"`
+}
+
+type User struct {
+	MarzbanUser   MarzbanUser
+	ProcessedUser ProcessedUser
+}
+
+func (u *User) Process() ProcessedUser {
+	if u.ProcessedUser.Username != "" {
+		return u.ProcessedUser
+	}
+
+	return u.MarzbanUser.Process()
+}
 
 type MarzbanProxies struct {
 	Vless struct {
@@ -30,6 +48,11 @@ type MarzbanUser struct {
 	Username               string         `json:"username"`
 	Status                 string         `json:"status"`
 	SubscriptionURL        string         `json:"subscription_url"`
+}
+
+type MarzbanUsersResponse struct {
+	Users []MarzbanUser `json:"users"`
+	Total int           `json:"total"`
 }
 
 type ProcessedUser struct {
@@ -131,11 +154,6 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 	}
 
 	return req
-}
-
-type MarzbanUsersResponse struct {
-	Users []MarzbanUser `json:"users"`
-	Total int           `json:"total"`
 }
 
 func strPtr(s string) *string {

@@ -1,42 +1,131 @@
-# Remnawave Migration Tools
+# Remnawave Migration Tool
 
-This repository contains a collection of tools for migrating users from various VPN panels to Remnawave panel.
+A command-line tool for migrating users from various VPN management panels to Remnawave.
 
-## Available Migration Tools
+## Supported Source Panels
 
-### [Marzban Migration Tool](./marzban)
+- Marzban
+- Marzneshin
 
-Migrate users from Marzban panel to Remnawave panel. Supports batch processing, selective migration of recent users, and custom traffic reset strategies.
+## Overview
 
-Features:
+This tool helps you migrate user accounts from various VPN management panels to a Remnawave. It supports batch processing, selective migration of recent users, and customization of traffic reset strategies.
 
-- Migrate user credentials and settings
-- Batch processing
-- Selective migration of recent users
+Key features:
+
+- Batch processing with configurable batch size
+- Migration of selected number of most recent users
+- Automatic handling of existing users
+- Support for environment variables
 - Customizable traffic reset strategy
-- Environment variables support
 - Flexible status handling
 
-[Learn more about Marzban Migration →](./marzban)
+### Migrated User Fields
 
-## General Information
+The following user fields are migrated to Remnawave:
 
-All migration tools in this repository follow these principles:
+| Field                | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| Username             | User's unique identifier                          |
+| Status               | User's status (can be preserved or set to ACTIVE) |
+| ShortUUID            | Generated from subscription URL hash              |
+| TrojanPassword       | Password for Trojan protocol                      |
+| VlessUUID            | UUID for VLESS protocol                           |
+| SsPassword           | Password for Shadowsocks protocol                 |
+| TrafficLimitBytes    | Traffic limit in bytes                            |
+| TrafficLimitStrategy | Traffic reset strategy (can be customized)        |
+| ExpireAt             | Account expiration date (UTC)                     |
+| Description          | User notes/description                            |
 
-- Safe and non-destructive migration
-- Configurable through CLI flags and environment variables
-- Detailed logging and error handling
-- Respect for existing users and data
-- Clear documentation and usage examples
+## Configuration
 
-## Contributing
+The tool can be configured using command-line flags or environment variables:
 
-We welcome contributions for new migration tools or improvements to existing ones. If you'd like to add support for migrating from another panel:
+| Flag                   | Environment Variable | Description                                    | Default   |
+| ---------------------- | -------------------- | ---------------------------------------------- | --------- |
+| `--panel-type`         | `PANEL_TYPE`         | Source panel type (`marzban` or `marzneshin`)  | `marzban` |
+| `--panel-url`          | `PANEL_URL`          | Source panel URL                               |           |
+| `--panel-username`     | `PANEL_USERNAME`     | Source panel admin username                    |           |
+| `--panel-password`     | `PANEL_PASSWORD`     | Source panel admin password                    |           |
+| `--remnawave-url`      | `REMNAWAVE_URL`      | Destination panel URL                          |           |
+| `--remnawave-token`    | `REMNAWAVE_TOKEN`    | Destination panel API token                    |           |
+| `--batch-size`         | `BATCH_SIZE`         | Number of users to process in one batch        | 100       |
+| `--last-users`         | `LAST_USERS`         | Only migrate last N users (0 means all users)  | 0         |
+| `--preferred-strategy` | `PREFERRED_STRATEGY` | Preferred traffic reset strategy for all users |           |
+| `--preserve-status`    | `PRESERVE_STATUS`    | Preserve user status from source panel         | false     |
+
+## Usage
+
+### Basic Usage
+
+```bash
+# Migrate all users (sets all users to ACTIVE status)
+./migration-tool \
+    --panel-type=marzban \
+    --panel-url="http://marzban.example.com" \
+    --panel-username="admin" \
+    --panel-password="password" \
+    --remnawave-url="http://remnawave.example.com" \
+    --remnawave-token="your-token"
+```
+
+### Preserve User Status
+
+```bash
+# Migrate users preserving their original status
+./migration-tool \
+    [other flags...] \
+    --preserve-status
+```
+
+### Migrate Last N Users
+
+```bash
+# Migrate only the last 50 users
+./migration-tool \
+    [other flags...] \
+    --last-users=50
+```
+
+### Set Preferred Traffic Reset Strategy
+
+```bash
+# Migrate users with a specific reset strategy
+./migration-tool \
+    [other flags...] \
+    --preferred-strategy=MONTH
+```
+
+Available strategy values:
+
+- `NO_RESET` - No traffic limit reset
+- `DAY` - Reset daily
+- `WEEK` - Reset weekly
+- `MONTH` - Reset monthly
+
+**Note:** If not specified, the original strategy from Marzban will be used (with YEAR strategy converted to NO_RESET as Remnawave doesn't support yearly resets).
+
+### Using Environment Variables
+
+```bash
+export PANEL_TYPE="marzban"
+export PANEL_URL="http://marzban.example.com"
+export PANEL_USERNAME="admin"
+export PANEL_PASSWORD="password"
+export REMNAWAVE_URL="http://remnawave.example.com"
+export REMNAWAVE_TOKEN="your-token"
+export BATCH_SIZE="200"
+export LAST_USERS="50"
+export PREFERRED_STRATEGY="MONTH"
+export PRESERVE_STATUS="true"
+
+./migration-tool
+```
 
 ## Contribute
 
 1. **Fork & Branch**: Fork this repository and create a branch for your work.
-2. **Create a new directory** for your panel tool (e.g., 3xui for 3X-UI migration)
-3. **Follow the existing code structure** and documentation patterns
-4. **Submit a pull request** with your changes
+2. **Implement Changes**: Work on your feature or fix, keeping code clean and well-documented.
+3. **Test**: Ensure your changes maintain or improve current functionality, adding tests for new features.
+4. **Commit & PR**: Commit your changes with clear messages, then open a pull request detailing your work.
 5. **Feedback**: Be prepared to engage with feedback and further refine your contribution.
