@@ -1,4 +1,4 @@
-module marzban-migration-tool
+module remnawave-migrate
 
 go 1.23.5
 

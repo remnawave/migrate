@@ -1,4 +1,4 @@
-package marzban
+package source
 
 import (
 	"encoding/json"
@@ -8,23 +8,23 @@ import (
 	"net/url"
 	"strings"
 
-	"marzban-migration-tool/models"
+	"remnawave-migrate/models"
 )
 
-type Panel struct {
+type MarzbanPanel struct {
 	client    *http.Client
 	baseURL   string
 	authToken string
 }
 
-func NewPanel(baseURL string) *Panel {
-	return &Panel{
+func NewMarzbanPanel(baseURL string) *MarzbanPanel {
+	return &MarzbanPanel{
 		client:  &http.Client{},
 		baseURL: baseURL,
 	}
 }
 
-func (p *Panel) Login(username, password string) error {
+func (p *MarzbanPanel) Login(username, password string) error {
 	data := url.Values{}
 	data.Set("username", username)
 	data.Set("password", password)
@@ -61,7 +61,7 @@ func (p *Panel) Login(username, password string) error {
 	return nil
 }
 
-func (p *Panel) GetUsers(offset, limit int) (*models.MarzbanUsersResponse, error) {
+func (p *MarzbanPanel) GetUsers(offset, limit int) (*models.UsersResponse, error) {
 	req, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/api/users?offset=%d&limit=%d", p.baseURL, offset, limit),
 		nil)
@@ -83,10 +83,21 @@ func (p *Panel) GetUsers(offset, limit int) (*models.MarzbanUsersResponse, error
 			resp.StatusCode, body)
 	}
 
-	var users models.MarzbanUsersResponse
-	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+	var marzbanResp models.MarzbanUsersResponse
+	if err := json.NewDecoder(resp.Body).Decode(&marzbanResp); err != nil {
 		return nil, fmt.Errorf("decoding response: %w", err)
 	}
 
-	return &users, nil
+	users := &models.UsersResponse{
+		Users: make([]models.User, len(marzbanResp.Users)),
+		Total: marzbanResp.Total,
+	}
+
+	for i, user := range marzbanResp.Users {
+		users.Users[i] = models.User{
+			MarzbanUser: user,
+		}
+	}
+
+	return users, nil
 }

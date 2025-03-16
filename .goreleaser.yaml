@@ -1,6 +1,6 @@
 version: 2
 
-project_name: marzban-migration-tool
+project_name: remnawave-migrate
 
 before:
   hooks:
@@ -13,7 +13,7 @@ checksum:
 
 builds:
   - id: build
-    binary: marzban-migration-tool
+    binary: remnawave-migrate
     env:
       - CGO_ENABLED=0
     goos:
@@ -28,7 +28,7 @@ builds:
       - -X main.version={{ .Tag }}
 
 archives:
-  - id: marzban-migration-tool
+  - id: remnawave-migrate
     format: tar.gz
     name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     format_overrides:

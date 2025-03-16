@@ -4,10 +4,10 @@ import (
 	"log"
 	"strings"
 
-	"marzban-migration-tool/config"
-	"marzban-migration-tool/marzban"
-	"marzban-migration-tool/migrator"
-	"marzban-migration-tool/remnawave"
+	"remnawave-migrate/config"
+	"remnawave-migrate/migrator"
+	"remnawave-migrate/remnawave"
+	"remnawave-migrate/source"
 )
 
 var (
@@ -17,8 +17,8 @@ var (
 func main() {
 	cfg := config.Parse(version)
 
-	if cfg.MarzbanPassword == "" {
-		log.Fatal("Marzban password is required")
+	if cfg.PanelPassword == "" {
+		log.Fatal("Panel password is required")
 	}
 	if cfg.RemnawaveToken == "" {
 		log.Fatal("Remnawave token is required")
@@ -39,14 +39,20 @@ func main() {
 		cfg.PreferredStrategy = strategy
 	}
 
-	marzbanPanel := marzban.NewPanel(cfg.MarzbanURL)
-	if err := marzbanPanel.Login(cfg.MarzbanUsername, cfg.MarzbanPassword); err != nil {
+	log.Printf("Starting migration from %s panel...", cfg.PanelType)
+
+	sourcePanel, err := source.Factory(cfg.PanelType, cfg.PanelURL)
+	if err != nil {
+		log.Fatalf("Failed to create source panel: %v", err)
+	}
+
+	if err := sourcePanel.Login(cfg.PanelUsername, cfg.PanelPassword); err != nil {
 		log.Fatalf("Login failed: %v", err)
 	}
 
 	remnaPanel := remnawave.NewPanel(cfg.RemnawaveURL, cfg.RemnawaveToken)
 
-	m := migrator.New(marzbanPanel, remnaPanel, cfg.PreferredStrategy, cfg.PreserveStatus)
+	m := migrator.New(sourcePanel, remnaPanel, cfg.PreferredStrategy, cfg.PreserveStatus)
 	if err := m.MigrateUsers(cfg.BatchSize, cfg.LastUsers); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}

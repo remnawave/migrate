@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"log"
 
-	"marzban-migration-tool/marzban"
-	"marzban-migration-tool/remnawave"
+	"remnawave-migrate/remnawave"
+	"remnawave-migrate/source"
 )
 
 type Migrator struct {
-	source            *marzban.Panel
+	source            source.SourcePanel
 	destination       *remnawave.Panel
 	PreferredStrategy string
 	PreserveStatus    bool
 }
 
-func New(source *marzban.Panel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool) *Migrator {
+func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool) *Migrator {
 	return &Migrator{
 		source:            source,
 		destination:       destination,
