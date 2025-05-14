@@ -2,13 +2,13 @@ package main
 
 import (
 	"log"
-	"os"
 	"strings"
 
 	"remnawave-migrate/config"
 	"remnawave-migrate/migrator"
 	"remnawave-migrate/remnawave"
 	"remnawave-migrate/source"
+	"remnawave-migrate/util"
 )
 
 var version = "unknown"
@@ -16,8 +16,8 @@ var version = "unknown"
 func main() {
 	cfg := config.Parse(version)
 
-	cfg.SourceHeaders = parseHeaderMap(cfg.SourceHeadersRaw)
-	cfg.DestHeaders = parseHeaderMap(cfg.DestHeadersRaw)
+	cfg.SourceHeaders = util.ParseHeaderMap(cfg.SourceHeadersRaw)
+	cfg.DestHeaders = util.ParseHeaderMap(cfg.DestHeadersRaw)
 
 	if cfg.RemnawaveToken != "" {
 		if _, exists := cfg.DestHeaders["Authorization"]; !exists {
@@ -67,27 +67,3 @@ func main() {
 
 	log.Println("Migration completed successfully!")
 }
-
-func parseHeaderMap(raw string) map[string]string {
-	headers := make(map[string]string)
-	if raw == "" {
-		return headers
-	}
-	for _, pair := range strings.Split(raw, ",") {
-		kv := strings.SplitN(pair, ":", 2)
-		if len(kv) == 2 {
-			headers[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
-		}
-	}
-	return headers
-}
-
-func getEnvOrArg(envKey, flagKey string) string {
-	for _, arg := range os.Args {
-		if strings.HasPrefix(arg, flagKey+"=") {
-			return strings.SplitN(arg, "=", 2)[1]
-		}
-	}
-	return os.Getenv(envKey)
-}
-

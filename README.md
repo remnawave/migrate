@@ -4,8 +4,8 @@ A command-line tool for migrating users from various VPN management panels to Re
 
 ## Supported Source Panels
 
-* Marzban
-* Marzneshin
+- Marzban
+- Marzneshin
 
 ## Overview
 
@@ -13,13 +13,13 @@ This tool helps you migrate user accounts from various VPN management panels to 
 
 ## Key Features
 
-* Batch processing with configurable batch size
-* Migration of selected number of most recent users
-* Automatic handling of existing users
-* Support for environment variables
-* Customizable traffic reset strategy
-* Flexible status handling
-* Support for custom headers in both source and destination panels
+- Batch processing with configurable batch size
+- Migration of selected number of most recent users
+- Automatic handling of existing users
+- Support for environment variables
+- Customizable traffic reset strategy
+- Flexible status handling
+- Support for custom headers in both source and destination panels
 
 ## Migrated User Fields
 
@@ -40,20 +40,20 @@ This tool helps you migrate user accounts from various VPN management panels to 
 
 The tool can be configured using command-line flags or environment variables.
 
-| Flag                 | Env Variable        | Description                                                    | Default |
-| -------------------- | ------------------- | -------------------------------------------------------------- | ------- |
-| --panel-type         | PANEL\_TYPE         | Source panel type (marzban or marzneshin)                      | marzban |
-| --panel-url          | PANEL\_URL          | Source panel URL                                               |         |
-| --panel-username     | PANEL\_USERNAME     | Source panel admin username                                    |         |
-| --panel-password     | PANEL\_PASSWORD     | Source panel admin password                                    |         |
-| --remnawave-url      | REMNAWAVE\_URL      | Destination panel URL                                          |         |
-| --remnawave-token    | REMNAWAVE\_TOKEN    | Destination panel API token (used as Authorization Bearer)     |         |
-| --dest-headers       | DEST\_HEADERS       | Additional headers for Remnawave (e.g., X-Api-Key)             |         |
-| --source-headers     | SOURCE\_HEADERS     | Additional headers for source panel                            |         |
-| --batch-size         | BATCH\_SIZE         | Number of users to process in one batch                        | 100     |
-| --last-users         | LAST\_USERS         | Only migrate last N users (0 means all users)                  | 0       |
-| --preferred-strategy | PREFERRED\_STRATEGY | Preferred traffic reset strategy (NO\_RESET, DAY, WEEK, MONTH) |         |
-| --preserve-status    | PRESERVE\_STATUS    | Preserve user status from source panel                         | false   |
+| Flag                 | Env Variable       | Description                                                   | Default |
+| -------------------- | ------------------ | ------------------------------------------------------------- | ------- |
+| --panel-type         | PANEL_TYPE         | Source panel type (marzban or marzneshin)                     | marzban |
+| --panel-url          | PANEL_URL          | Source panel URL                                              |         |
+| --panel-username     | PANEL_USERNAME     | Source panel admin username                                   |         |
+| --panel-password     | PANEL_PASSWORD     | Source panel admin password                                   |         |
+| --remnawave-url      | REMNAWAVE_URL      | Destination panel URL                                         |         |
+| --remnawave-token    | REMNAWAVE_TOKEN    | Destination panel API token (used as Authorization Bearer)    |         |
+| --dest-headers       | DEST_HEADERS       | Additional headers for Remnawave (e.g., X-Api-Key)            |         |
+| --source-headers     | SOURCE_HEADERS     | Additional headers for source panel                           |         |
+| --batch-size         | BATCH_SIZE         | Number of users to process in one batch                       | 100     |
+| --last-users         | LAST_USERS         | Only migrate last N users (0 means all users)                 | 0       |
+| --preferred-strategy | PREFERRED_STRATEGY | Preferred traffic reset strategy (NO_RESET, DAY, WEEK, MONTH) |         |
+| --preserve-status    | PRESERVE_STATUS    | Preserve user status from source panel                        | false   |
 
 ## Usage
 
@@ -95,12 +95,12 @@ The tool can be configured using command-line flags or environment variables.
 
 **Available strategy values:**
 
-* NO\_RESET
-* DAY
-* WEEK
-* MONTH
+- NO_RESET
+- DAY
+- WEEK
+- MONTH
 
-> Note: If not specified, the original strategy from Marzban will be used. YEAR is converted to NO\_RESET.
+> Note: If not specified, the original strategy from Marzban will be used. YEAR is converted to NO_RESET.
 
 ## Custom Headers
 
