@@ -12,13 +12,14 @@ type SourcePanel interface {
 	GetUsers(offset, limit int) (*models.UsersResponse, error)
 }
 
-func Factory(panelType, baseURL string) (SourcePanel, error) {
+func Factory(panelType, baseURL string, headers map[string]string) (SourcePanel, error) {
 	switch panelType {
 	case "marzban":
-		return NewMarzbanPanel(baseURL), nil
+		return NewMarzbanPanel(baseURL, headers), nil
 	case "marzneshin":
-		return NewMarzneshinPanel(baseURL), nil
+		return NewMarzneshinPanel(baseURL, headers), nil
 	default:
 		return nil, fmt.Errorf("unsupported panel type: %s", panelType)
 	}
 }
+

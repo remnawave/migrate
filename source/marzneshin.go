@@ -18,6 +18,7 @@ type MarzneshinPanel struct {
 	client    *http.Client
 	baseURL   string
 	authToken string
+	headers map[string]string
 }
 
 type MarzneshinUser struct {
@@ -45,10 +46,11 @@ type MarzneshinUsersResponse struct {
 	Pages int              `json:"pages"`
 }
 
-func NewMarzneshinPanel(baseURL string) *MarzneshinPanel {
+func NewMarzneshinPanel(baseURL string, headers map[string]string) *MarzneshinPanel {
 	return &MarzneshinPanel{
 		client:  &http.Client{},
 		baseURL: baseURL,
+		headers: headers,
 	}
 }
 
@@ -86,6 +88,10 @@ func (p *MarzneshinPanel) Login(username, password string) error {
 	}
 
 	p.authToken = tokenResp.AccessToken
+	for k, v := range p.headers {
+	req.Header.Set(k, v)
+	}
+
 	return nil
 }
 
@@ -173,7 +179,9 @@ func (p *MarzneshinPanel) fetchUserProxies(username, key string) (string, string
 	if err != nil {
 		return "", "", "", fmt.Errorf("creating subscription request: %w", err)
 	}
-
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return "", "", "", fmt.Errorf("fetching subscription: %w", err)
