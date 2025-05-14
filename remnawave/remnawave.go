@@ -14,13 +14,15 @@ type Panel struct {
 	client  *http.Client
 	baseURL string
 	token   string
+	headers map[string]string
 }
 
-func NewPanel(baseURL, token string) *Panel {
+func NewPanel(baseURL, token string, headers map[string]string) *Panel {
 	return &Panel{
 		client:  &http.Client{},
 		baseURL: baseURL,
 		token:   token,
+		headers: headers,
 	}
 }
 
@@ -30,14 +32,16 @@ func (p *Panel) CreateUser(req models.CreateUserRequest) error {
 		return fmt.Errorf("marshaling request: %w", err)
 	}
 
-	httpReq, err := http.NewRequest("POST", p.baseURL+"/api/users",
-		strings.NewReader(string(jsonData)))
+	httpReq, err := http.NewRequest("POST", p.baseURL+"/api/users", strings.NewReader(string(jsonData)))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
 
 	httpReq.Header.Set("Authorization", "Bearer "+p.token)
 	httpReq.Header.Set("Content-Type", "application/json")
+	for k, v := range p.headers {
+		httpReq.Header.Set(k, v)
+	}
 
 	resp, err := p.client.Do(httpReq)
 	if err != nil {
@@ -58,15 +62,14 @@ func (p *Panel) CreateUser(req models.CreateUserRequest) error {
 				ApiError: apiErr,
 			}
 		}
-		return fmt.Errorf("creating user failed: status %d, body: %s",
-			resp.StatusCode, body)
+		return fmt.Errorf("creating user failed: status %d, body: %s", resp.StatusCode, body)
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("creating user failed: status %d, body: %s",
-			resp.StatusCode, body)
+		return fmt.Errorf("creating user failed: status %d, body: %s", resp.StatusCode, body)
 	}
 
 	return nil
 }
+

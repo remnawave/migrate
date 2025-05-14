@@ -13,6 +13,13 @@ type Config struct {
 	LastUsers         int    `name:"last-users" help:"Only migrate last N users (0 means all users)" default:"0" env:"LAST_USERS"`
 	PreferredStrategy string `name:"preferred-strategy" help:"Preferred traffic reset strategy for all users (NO_RESET, DAY, WEEK, MONTH). If set, overrides the user's original strategy" default:"" env:"PREFERRED_STRATEGY"`
 	PreserveStatus    bool   `name:"preserve-status" help:"Preserve user status from source panel (if false, sets all users to ACTIVE)" default:"false" env:"PRESERVE_STATUS"`
+
+	SourceHeadersRaw string `name:"source-headers" help:"Custom headers for source panel in key:value,key:value format" env:"SOURCE_HEADERS"`
+	DestHeadersRaw   string `name:"dest-headers" help:"Custom headers for Remnawave panel in key:value,key:value format" env:"DEST_HEADERS"`
+
+	// Эти поля будут заполняться вручную в main.go
+	SourceHeaders map[string]string `kong:"-"`
+	DestHeaders   map[string]string `kong:"-"`
 }
 
 func Parse(version string) *Config {
@@ -24,3 +31,4 @@ func Parse(version string) *Config {
 	)
 	return &cfg
 }
+

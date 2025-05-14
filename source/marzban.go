@@ -15,12 +15,14 @@ type MarzbanPanel struct {
 	client    *http.Client
 	baseURL   string
 	authToken string
+	headers   map[string]string
 }
 
-func NewMarzbanPanel(baseURL string) *MarzbanPanel {
+func NewMarzbanPanel(baseURL string, headers map[string]string) *MarzbanPanel {
 	return &MarzbanPanel{
 		client:  &http.Client{},
 		baseURL: baseURL,
+		headers: headers,
 	}
 }
 
@@ -29,13 +31,15 @@ func (p *MarzbanPanel) Login(username, password string) error {
 	data.Set("username", username)
 	data.Set("password", password)
 
-	req, err := http.NewRequest("POST", p.baseURL+"/api/admin/token",
-		strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", p.baseURL+"/api/admin/token", strings.NewReader(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
 
 	resp, err := p.client.Do(req)
 	if err != nil {
@@ -70,6 +74,9 @@ func (p *MarzbanPanel) GetUsers(offset, limit int) (*models.UsersResponse, error
 	}
 
 	req.Header.Set("Authorization", "Bearer "+p.authToken)
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
 
 	resp, err := p.client.Do(req)
 	if err != nil {
@@ -101,3 +108,4 @@ func (p *MarzbanPanel) GetUsers(offset, limit int) (*models.UsersResponse, error
 
 	return users, nil
 }
+
