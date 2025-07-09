@@ -4,6 +4,7 @@ import (
 	"remnawave-migrate/util"
 	"strings"
 	"time"
+	"log"
 )
 
 type UsersResponse struct {
@@ -45,6 +46,7 @@ type MarzbanUser struct {
 	Expire                 int64          `json:"expire"`
 	DataLimit              int64          `json:"data_limit"`
 	DataLimitResetStrategy string         `json:"data_limit_reset_strategy"`
+	Inbounds               map[string][]string `json:"inbounds"`
 	Note                   string         `json:"note"`
 	Username               string         `json:"username"`
 	Status                 string         `json:"status"`
@@ -61,6 +63,7 @@ type ProcessedUser struct {
 	Expire                 string `json:"expire"`
 	DataLimit              int64  `json:"data_limit"`
 	DataLimitResetStrategy string `json:"data_limit_reset_strategy"`
+	InboundTags            []string `json:"inbounds"`
 	Note                   string `json:"note"`
 	Username               string `json:"username"`
 	Status                 string `json:"status"`
@@ -86,6 +89,12 @@ func (u *MarzbanUser) Process() ProcessedUser {
 		}
 	}
 
+	// combine all inbounds into one list
+	var inboundTags []string
+	for _, values := range u.Inbounds {
+		inboundTags = append(inboundTags, values...)
+	}
+
 	parsedCreatedAt, err := time.Parse("2006-01-02T15:04:05", u.CreatedAt)
 	if err != nil {
 		parsedCreatedAt = time.Now().UTC()
@@ -97,6 +106,7 @@ func (u *MarzbanUser) Process() ProcessedUser {
 		DataLimit:              u.DataLimit,
 		DataLimitResetStrategy: u.DataLimitResetStrategy,
 		Note:                   u.Note,
+		InboundTags:            inboundTags,
 		Username:               u.Username,
 		Status:                 u.Status,
 		VlessID:                u.Proxies.Vless.ID,
@@ -107,21 +117,22 @@ func (u *MarzbanUser) Process() ProcessedUser {
 }
 
 type CreateUserRequest struct {
-	Username             string  `json:"username"`
-	Status               string  `json:"status"`
-	ShortUUID            *string `json:"shortUuid,omitempty"`
-	TrojanPassword       *string `json:"trojanPassword,omitempty"`
-	VlessUUID            *string `json:"vlessUuid,omitempty"`
-	SsPassword           *string `json:"ssPassword,omitempty"`
-	TrafficLimitBytes    int64   `json:"trafficLimitBytes"`
-	TrafficLimitStrategy string  `json:"trafficLimitStrategy"`
-	ExpireAt             string  `json:"expireAt"`
-	CreatedAt            string  `json:"createdAt"`
-	Description          string  `json:"description"`
-	ActivateAllInbounds  bool    `json:"activateAllInbounds"`
+	Username             string   `json:"username"`
+	Status               string   `json:"status"`
+	ShortUUID            *string  `json:"shortUuid,omitempty"`
+	TrojanPassword       *string  `json:"trojanPassword,omitempty"`
+	VlessUUID            *string  `json:"vlessUuid,omitempty"`
+	SsPassword           *string  `json:"ssPassword,omitempty"`
+	TrafficLimitBytes    int64    `json:"trafficLimitBytes"`
+	TrafficLimitStrategy string   `json:"trafficLimitStrategy"`
+	ActiveUserInbounds   []string `json:"activeUserInbounds"`
+	ExpireAt             string   `json:"expireAt"`
+	CreatedAt            string   `json:"createdAt"`
+	Description          string   `json:"description"`
+	ActivateAllInbounds  bool     `json:"activateAllInbounds"`
 }
 
-func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool) CreateUserRequest {
+func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool, preserveSubHash bool, preserveInbounds bool, remnawaveInbounds map[string]string) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
 
 	if strategy == "YEAR" {
@@ -144,13 +155,28 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 		Status:               status,
 		TrafficLimitBytes:    p.DataLimit,
 		TrafficLimitStrategy: strategy,
+		ActiveUserInbounds:   []string{},
 		ExpireAt:             p.Expire,
 		CreatedAt:            p.CreatedAt,
 		Description:          p.Note,
 		ActivateAllInbounds:  true,
 	}
 
-	if p.SubscriptionHash != "" {
+	if preserveInbounds {
+		var inboundUuidList []string
+		for _, tag := range p.InboundTags {
+			if uuid, ok := remnawaveInbounds[tag]; ok {
+				inboundUuidList = append(inboundUuidList, uuid)
+			} else {
+				log.Printf("Warning: inbound tag %s not found in destination panel, skipping", tag)
+			}
+		}
+
+		req.ActiveUserInbounds = inboundUuidList
+		req.ActivateAllInbounds = false
+	}
+
+	if preserveSubHash && p.SubscriptionHash != "" {
 		req.ShortUUID = strPtr(p.SubscriptionHash)
 	}
 	if p.TrojanPassword != "" {
