@@ -41,6 +41,7 @@ type MarzbanProxies struct {
 
 type MarzbanUser struct {
 	Proxies                MarzbanProxies `json:"proxies"`
+	CreatedAt              string         `json:"created_at"`
 	Expire                 int64          `json:"expire"`
 	DataLimit              int64          `json:"data_limit"`
 	DataLimitResetStrategy string         `json:"data_limit_reset_strategy"`
@@ -56,6 +57,7 @@ type MarzbanUsersResponse struct {
 }
 
 type ProcessedUser struct {
+	CreatedAt              string `json:"created_at"`
 	Expire                 string `json:"expire"`
 	DataLimit              int64  `json:"data_limit"`
 	DataLimitResetStrategy string `json:"data_limit_reset_strategy"`
@@ -84,7 +86,13 @@ func (u *MarzbanUser) Process() ProcessedUser {
 		}
 	}
 
+	parsedCreatedAt, err := time.Parse("2006-01-02T15:04:05", u.CreatedAt)
+	if err != nil {
+		parsedCreatedAt = time.Now().UTC()
+	}
+
 	return ProcessedUser{
+		CreatedAt:              parsedCreatedAt.Format("2006-01-02T15:04:05.000Z"),
 		Expire:                 expireTime.Format("2006-01-02T15:04:05.000Z"),
 		DataLimit:              u.DataLimit,
 		DataLimitResetStrategy: u.DataLimitResetStrategy,
@@ -108,6 +116,7 @@ type CreateUserRequest struct {
 	TrafficLimitBytes    int64   `json:"trafficLimitBytes"`
 	TrafficLimitStrategy string  `json:"trafficLimitStrategy"`
 	ExpireAt             string  `json:"expireAt"`
+	CreatedAt            string  `json:"createdAt"`
 	Description          string  `json:"description"`
 	ActivateAllInbounds  bool    `json:"activateAllInbounds"`
 }
@@ -136,6 +145,7 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 		TrafficLimitBytes:    p.DataLimit,
 		TrafficLimitStrategy: strategy,
 		ExpireAt:             p.Expire,
+		CreatedAt:            p.CreatedAt,
 		Description:          p.Note,
 		ActivateAllInbounds:  true,
 	}
