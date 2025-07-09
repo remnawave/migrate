@@ -124,7 +124,7 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 	}
 
 	status := "ACTIVE"
-	if preserveStatus {
+	if preserveStatus && strings.ToLower(p.Status) != "on_hold" {
 		status = strings.ToUpper(p.Status)
 	}
 
