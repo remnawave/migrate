@@ -23,18 +23,20 @@ This tool helps you migrate user accounts from various VPN management panels to 
 
 ## Migrated User Fields
 
-| Field                | Description                                       |
-| -------------------- | ------------------------------------------------- |
-| Username             | User's unique identifier                          |
-| Status               | User's status (can be preserved or set to ACTIVE) |
-| ShortUUID            | Generated from subscription URL hash              |
-| TrojanPassword       | Password for Trojan protocol                      |
-| VlessUUID            | UUID for VLESS protocol                           |
-| SsPassword           | Password for Shadowsocks protocol                 |
-| TrafficLimitBytes    | Traffic limit in bytes                            |
-| TrafficLimitStrategy | Traffic reset strategy                            |
-| ExpireAt             | Account expiration date (UTC)                     |
-| Description          | User notes/description                            |
+| Field                | Description                                             |
+| -------------------- | ------------------------------------------------------- |
+| Username             | User's unique identifier                                |
+| Status               | User's status (can be preserved or set to ACTIVE)       |
+| ShortUUID            | Generated from subscription URL hash                    |
+| TrojanPassword       | Password for Trojan protocol                            |
+| VlessUUID            | UUID for VLESS protocol                                 |
+| SsPassword           | Password for Shadowsocks protocol                       |
+| TrafficLimitBytes    | Traffic limit in bytes                                  |
+| TrafficLimitStrategy | Traffic reset strategy                                  |
+| activeUserInbounds   | Array of UUIDs representing enabled inbound connections |
+| ExpireAt             | Account expiration date (UTC)                           |
+| CreatedAt            | Account creation date (UTC)                             |
+| Description          | User notes/description                                  |
 
 ## Configuration
 
@@ -53,7 +55,9 @@ The tool can be configured using command-line flags or environment variables.
 | --batch-size         | BATCH_SIZE         | Number of users to process in one batch                       | 100     |
 | --last-users         | LAST_USERS         | Only migrate last N users (0 means all users)                 | 0       |
 | --preferred-strategy | PREFERRED_STRATEGY | Preferred traffic reset strategy (NO_RESET, DAY, WEEK, MONTH) |         |
+| --preserve-inbounds  | PRESERVE_INBOUNDS  | Preserve user active inbounds from source panel               | false   |
 | --preserve-status    | PRESERVE_STATUS    | Preserve user status from source panel                        | false   |
+| --preserve-subhash   | PRESERVE_SUBHASH   | Preserve user subscription URL hash from source panel         | false   |
 
 ## Usage
 

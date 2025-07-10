@@ -60,7 +60,7 @@ func main() {
 
 	remnaPanel := remnawave.NewPanel(cfg.RemnawaveURL, cfg.RemnawaveToken, cfg.DestHeaders)
 
-	m := migrator.New(sourcePanel, remnaPanel, cfg.PreferredStrategy, cfg.PreserveStatus)
+	m := migrator.New(sourcePanel, remnaPanel, cfg.PreferredStrategy, cfg.PreserveInbounds, cfg.PreserveStatus, cfg.PreserveSubHash)
 	if err := m.MigrateUsers(cfg.BatchSize, cfg.LastUsers); err != nil {
 		log.Fatalf("Migration failed: %v", err)
 	}

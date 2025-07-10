@@ -26,6 +26,50 @@ func NewPanel(baseURL, token string, headers map[string]string) *Panel {
 	}
 }
 
+type Inbound struct {
+	UUID string `json:"uuid"`
+	Tag  string `json:"tag"`
+}
+
+type InboundsResponse struct {
+	Response []Inbound `json:"response"`
+}
+
+func (p *Panel) GetInbounds() (map[string]string, error) {
+	req, err := http.NewRequest("GET", p.baseURL+"/api/inbounds", nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+p.token)
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("failed to get inbounds: status %d, body: %s", resp.StatusCode, body)
+	}
+
+	var inboundsResp InboundsResponse
+	if err := json.NewDecoder(resp.Body).Decode(&inboundsResp); err != nil {
+		return nil, fmt.Errorf("decoding response: %w", err)
+	}
+
+	inbounds := make(map[string]string)
+	for _, inbound := range inboundsResp.Response {
+		inbounds[inbound.Tag] = inbound.UUID
+	}
+
+	return inbounds, nil
+}
+
 func (p *Panel) CreateUser(req models.CreateUserRequest) error {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
