@@ -12,7 +12,6 @@ type Config struct {
 	BatchSize         int    `name:"batch-size" help:"Number of users to process in one batch" default:"100" env:"BATCH_SIZE"`
 	LastUsers         int    `name:"last-users" help:"Only migrate last N users (0 means all users)" default:"0" env:"LAST_USERS"`
 	PreferredStrategy string `name:"preferred-strategy" help:"Preferred traffic reset strategy for all users (NO_RESET, DAY, WEEK, MONTH). If set, overrides the user's original strategy" default:"" env:"PREFERRED_STRATEGY"`
-	PreserveInbounds  bool   `name:"preserve-inbounds" help:"Preserve user active inbounds from source panel (if false, enables all available inbounds)" default:"false" env:"PRESERVE_INBOUNDS"`
 	PreserveStatus    bool   `name:"preserve-status" help:"Preserve user status from source panel (if false, sets all users to ACTIVE)" default:"false" env:"PRESERVE_STATUS"`
 	PreserveSubHash   bool   `name:"preserve-subhash" help:"Preserve user subscription hash from source panel (if false, generates new subscription hash)" default:"false" env:"PRESERVE_SUBHASH"`
 
@@ -33,4 +32,3 @@ func Parse(version string) *Config {
 	)
 	return &cfg
 }
-

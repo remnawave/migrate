@@ -12,17 +12,15 @@ type Migrator struct {
 	source            source.SourcePanel
 	destination       *remnawave.Panel
 	PreferredStrategy string
-	PreserveInbounds  bool
 	PreserveStatus    bool
 	PreserveSubHash   bool
 }
 
-func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrategy string, preserveInbounds bool, preserveStatus bool, preserveSubHash bool) *Migrator {
+func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool, preserveSubHash bool) *Migrator {
 	return &Migrator{
 		source:            source,
 		destination:       destination,
 		PreferredStrategy: preferredStrategy,
-		PreserveInbounds:  preserveInbounds,
 		PreserveStatus:    preserveStatus,
 		PreserveSubHash:   preserveSubHash,
 	}
@@ -55,11 +53,6 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 	offset := startOffset
 	processedUsers := 0
 
-	remnawaveInbounds, err := m.destination.GetInbounds()
-	if err != nil {
-		return fmt.Errorf("failed to get inbounds: %w", err)
-	}
-
 	for {
 		users, err := m.source.GetUsers(offset, batchSize)
 		if err != nil {
@@ -76,7 +69,7 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 
 			processed := user.Process()
 			originalUsername := processed.Username
-			createReq := processed.ToCreateUserRequest(m.PreferredStrategy, m.PreserveStatus, m.PreserveSubHash, m.PreserveInbounds, remnawaveInbounds)
+			createReq := processed.ToCreateUserRequest(m.PreferredStrategy, m.PreserveStatus, m.PreserveSubHash)
 
 			if originalUsername != createReq.Username {
 				log.Printf("Username %s was sanitized to %s",
