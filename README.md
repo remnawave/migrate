@@ -22,8 +22,7 @@ This tool helps you migrate user accounts from various VPN management panels to 
 - Support for custom headers in both source and destination panels
 
 > [!IMPORTANT]
-> Remnawave 2.x Notes
-> Migrated users do not have squad. You can add users to squads via Bulk Action.
+> Remnawave 2.x: Migrated users do not have squad. You can add users to squads via Bulk Action.
 
 ## Migrated User Fields
 
