@@ -36,6 +36,7 @@ type MarzneshinUser struct {
 	DataLimitReached       bool    `json:"data_limit_reached"`
 	Enabled                bool    `json:"enabled"`
 	SubscriptionURL        string  `json:"subscription_url"`
+	CreatedAt              string  `json:"created_at"`
 }
 
 type MarzneshinUsersResponse struct {
@@ -145,6 +146,7 @@ func (p *MarzneshinPanel) GetUsers(offset, limit int) (*models.UsersResponse, er
 			SubscriptionHash:       user.Key,
 			DataLimitResetStrategy: strings.ToUpper(user.DataLimitResetStrategy),
 			Note:                   getStringValue(user.Note),
+			CreatedAt:              user.CreatedAt,
 		}
 
 		if user.ExpireDate != nil {
