@@ -15,9 +15,10 @@ type Migrator struct {
 	PreserveStatus    bool
 	PreserveSubHash   bool
 	InternalSquad     string
+	ExternalSquad     string
 }
 
-func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool, preserveSubHash bool, internalSquad string) *Migrator {
+func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrategy string, preserveStatus bool, preserveSubHash bool, internalSquad string, externalSquad string) *Migrator {
 	return &Migrator{
 		source:            source,
 		destination:       destination,
@@ -25,6 +26,7 @@ func New(source source.SourcePanel, destination *remnawave.Panel, preferredStrat
 		PreserveStatus:    preserveStatus,
 		PreserveSubHash:   preserveSubHash,
 		InternalSquad:     internalSquad,
+		ExternalSquad:     externalSquad,
 	}
 }
 
@@ -71,7 +73,7 @@ func (m *Migrator) migrateUsersRange(startOffset, limit, batchSize int) error {
 
 			processed := user.Process()
 			originalUsername := processed.Username
-			createReq := processed.ToCreateUserRequest(m.PreferredStrategy, m.PreserveStatus, m.PreserveSubHash, m.InternalSquad)
+			createReq := processed.ToCreateUserRequest(m.PreferredStrategy, m.PreserveStatus, m.PreserveSubHash, m.InternalSquad, m.ExternalSquad)
 
 			if originalUsername != createReq.Username {
 				log.Printf("Username %s was sanitized to %s",

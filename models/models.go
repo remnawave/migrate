@@ -120,9 +120,10 @@ type CreateUserRequest struct {
 	CreatedAt             string   `json:"createdAt"`
 	Description           string   `json:"description"`
 	ActiveInternalSquads  []string `json:"activeInternalSquads,omitempty"`
+	ExternalSquadUuid     *string  `json:"externalSquadUuid,omitempty"`
 }
 
-func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool, preserveSubHash bool, internalSquad string) CreateUserRequest {
+func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool, preserveSubHash bool, internalSquad string, externalSquad string) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
 
 	if strategy == "YEAR" {
@@ -151,7 +152,21 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 	}
 
 	if internalSquad != "" {
-		req.ActiveInternalSquads = []string{internalSquad}
+		squads := strings.Split(internalSquad, ",")
+		var trimmedSquads []string
+		for _, s := range squads {
+			trimmed := strings.TrimSpace(s)
+			if trimmed != "" {
+				trimmedSquads = append(trimmedSquads, trimmed)
+			}
+		}
+		if len(trimmedSquads) > 0 {
+			req.ActiveInternalSquads = trimmedSquads
+		}
+	}
+
+	if externalSquad != "" {
+		req.ExternalSquadUuid = strPtr(externalSquad)
 	}
 
 	if preserveSubHash && p.SubscriptionHash != "" {
