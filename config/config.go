@@ -14,6 +14,7 @@ type Config struct {
 	PreferredStrategy string `name:"preferred-strategy" help:"Preferred traffic reset strategy for all users (NO_RESET, DAY, WEEK, MONTH). If set, overrides the user's original strategy" default:"" env:"PREFERRED_STRATEGY"`
 	PreserveStatus    bool   `name:"preserve-status" help:"Preserve user status from source panel (if false, sets all users to ACTIVE)" default:"false" env:"PRESERVE_STATUS"`
 	PreserveSubHash   bool   `name:"preserve-subhash" help:"Preserve user subscription hash from source panel (if false, generates new subscription hash)" default:"false" env:"PRESERVE_SUBHASH"`
+	InternalSquad     string `name:"internal-squad" help:"UUID of internal squad to assign to all created users" default:"" env:"INTERNAL_SQUAD"`
 
 	SourceHeadersRaw string `name:"source-headers" help:"Custom headers for source panel in key:value,key:value format" env:"SOURCE_HEADERS"`
 	DestHeadersRaw   string `name:"dest-headers" help:"Custom headers for Remnawave panel in key:value,key:value format" env:"DEST_HEADERS"`

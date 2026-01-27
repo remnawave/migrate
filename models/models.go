@@ -108,20 +108,21 @@ func (u *MarzbanUser) Process() ProcessedUser {
 }
 
 type CreateUserRequest struct {
-	Username             string  `json:"username"`
-	Status               string  `json:"status"`
-	ShortUUID            *string `json:"shortUuid,omitempty"`
-	TrojanPassword       *string `json:"trojanPassword,omitempty"`
-	VlessUUID            *string `json:"vlessUuid,omitempty"`
-	SsPassword           *string `json:"ssPassword,omitempty"`
-	TrafficLimitBytes    int64   `json:"trafficLimitBytes"`
-	TrafficLimitStrategy string  `json:"trafficLimitStrategy"`
-	ExpireAt             string  `json:"expireAt"`
-	CreatedAt            string  `json:"createdAt"`
-	Description          string  `json:"description"`
+	Username              string   `json:"username"`
+	Status                string   `json:"status"`
+	ShortUUID             *string  `json:"shortUuid,omitempty"`
+	TrojanPassword        *string  `json:"trojanPassword,omitempty"`
+	VlessUUID             *string  `json:"vlessUuid,omitempty"`
+	SsPassword            *string  `json:"ssPassword,omitempty"`
+	TrafficLimitBytes     int64    `json:"trafficLimitBytes"`
+	TrafficLimitStrategy  string   `json:"trafficLimitStrategy"`
+	ExpireAt              string   `json:"expireAt"`
+	CreatedAt             string   `json:"createdAt"`
+	Description           string   `json:"description"`
+	ActiveInternalSquads  []string `json:"activeInternalSquads,omitempty"`
 }
 
-func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool, preserveSubHash bool) CreateUserRequest {
+func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveStatus bool, preserveSubHash bool, internalSquad string) CreateUserRequest {
 	strategy := strings.ToUpper(p.DataLimitResetStrategy)
 
 	if strategy == "YEAR" {
@@ -147,6 +148,10 @@ func (p *ProcessedUser) ToCreateUserRequest(preferredStrategy string, preserveSt
 		ExpireAt:             p.Expire,
 		CreatedAt:            p.CreatedAt,
 		Description:          p.Note,
+	}
+
+	if internalSquad != "" {
+		req.ActiveInternalSquads = []string{internalSquad}
 	}
 
 	if preserveSubHash && p.SubscriptionHash != "" {
