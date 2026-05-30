@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
@@ -16,7 +17,6 @@ type ThreeXUIPanel struct {
 	client        *http.Client
 	baseURL       string
 	headers       map[string]string
-	cookies       []*http.Cookie
 	allUsersCache []models.User
 	cacheLoaded   bool
 }
@@ -61,7 +61,7 @@ type inbound struct {
 	Protocol     string                    `json:"protocol"`
 	Tag          string                    `json:"tag"`
 	TrafficReset string                    `json:"trafficReset"`
-	Settings     string                    `json:"settings"`
+	Settings     json.RawMessage           `json:"settings"`
 	ClientStats  []threeXUIClientStatsItem `json:"clientStats"`
 }
 
@@ -71,18 +71,75 @@ type apiResponse struct {
 	Obj     []inbound `json:"obj"`
 }
 
+type threeXUIInboundSettings struct {
+	Clients    []threeXUIClient `json:"clients"`
+	Decryption string           `json:"decryption"`
+	Encryption string           `json:"encryption"`
+}
+
 func NewThreeXUIPanel(baseURL string, headers map[string]string) *ThreeXUIPanel {
+	jar, _ := cookiejar.New(nil)
+
 	return &ThreeXUIPanel{
-		client:  &http.Client{},
+		client:  &http.Client{Jar: jar},
 		baseURL: baseURL,
 		headers: headers,
 	}
 }
 
+func (p *ThreeXUIPanel) fetchCSRFToken() (string, bool, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/csrf-token", p.baseURL), nil)
+	if err != nil {
+		return "", false, fmt.Errorf("creating csrf token request: %w", err)
+	}
+
+	for k, v := range p.headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := p.client.Do(req)
+	if err != nil {
+		return "", false, fmt.Errorf("fetching csrf token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return "", false, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", false, fmt.Errorf("fetching csrf token failed: status %d, body: %s",
+			resp.StatusCode, body)
+	}
+
+	var csrfResp struct {
+		Success bool   `json:"success"`
+		Obj     string `json:"obj"`
+		Msg     string `json:"msg"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&csrfResp); err != nil {
+		return "", false, fmt.Errorf("decoding csrf token response: %w", err)
+	}
+	if !csrfResp.Success {
+		return "", false, fmt.Errorf("csrf token request failed: %s", csrfResp.Msg)
+	}
+	if csrfResp.Obj == "" {
+		return "", false, fmt.Errorf("csrf token response did not include token")
+	}
+
+	return csrfResp.Obj, true, nil
+}
+
 func (p *ThreeXUIPanel) Login(username, password string) error {
+	csrfToken, csrfSupported, err := p.fetchCSRFToken()
+	if err != nil {
+		return err
+	}
+
 	loginData := url.Values{}
 	loginData.Set("username", username)
 	loginData.Set("password", password)
+	loginData.Set("twoFactorCode", "")
 
 	req, err := http.NewRequest("POST",
 		fmt.Sprintf("%s/login", p.baseURL),
@@ -92,6 +149,9 @@ func (p *ThreeXUIPanel) Login(username, password string) error {
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if csrfSupported {
+		req.Header.Set("X-CSRF-Token", csrfToken)
+	}
 	for k, v := range p.headers {
 		req.Header.Set(k, v)
 	}
@@ -107,8 +167,6 @@ func (p *ThreeXUIPanel) Login(username, password string) error {
 		return fmt.Errorf("login failed: status %d, body: %s",
 			resp.StatusCode, body)
 	}
-
-	p.cookies = resp.Cookies()
 
 	return nil
 }
@@ -159,7 +217,7 @@ func processUser(client threeXUIClient, clientStatsItem threeXUIClientStatsItem,
 		VlessID:                "", //Protocol specific fields are set later
 		TrojanPassword:         "",
 		ShadowsocksPassword:    "",
-		SubscriptionHash:       "", // Will be generated
+		SubscriptionHash:       clientStatsItem.SubID,
 		DataLimit:              client.TotalBytes,
 		DataLimitResetStrategy: trafficResetStrategy,
 		Note:                   client.Comment,
@@ -187,13 +245,8 @@ func joinClientStats(clients []threeXUIClient, clientStats []threeXUIClientStats
 }
 
 func getInboundUsers(inbound inbound) ([]models.ProcessedUser, error) {
-	var settingsObj struct {
-		Clients    []threeXUIClient `json:"clients"`
-		Decryption string           `json:"decryption"`
-		Encryption string           `json:"encryption"`
-	}
-
-	if err := json.Unmarshal([]byte(inbound.Settings), &settingsObj); err != nil {
+	settingsObj, err := parseInboundSettings(inbound.Settings)
+	if err != nil {
 		return nil, fmt.Errorf("failed to parse settings for inbound %d: %w", inbound.ID, err)
 	}
 
@@ -218,16 +271,37 @@ func getInboundUsers(inbound inbound) ([]models.ProcessedUser, error) {
 	return processedUsers, nil
 }
 
+func parseInboundSettings(raw json.RawMessage) (*threeXUIInboundSettings, error) {
+	settingsJSON := strings.TrimSpace(string(raw))
+	if settingsJSON == "" || settingsJSON == "null" {
+		return &threeXUIInboundSettings{}, nil
+	}
+
+	if settingsJSON[0] == '"' {
+		var settingsString string
+		if err := json.Unmarshal(raw, &settingsString); err != nil {
+			return nil, err
+		}
+		settingsJSON = strings.TrimSpace(settingsString)
+		if settingsJSON == "" {
+			return &threeXUIInboundSettings{}, nil
+		}
+	}
+
+	var settingsObj threeXUIInboundSettings
+	if err := json.Unmarshal([]byte(settingsJSON), &settingsObj); err != nil {
+		return nil, err
+	}
+
+	return &settingsObj, nil
+}
+
 func fetchInbounds(p *ThreeXUIPanel) (*apiResponse, error) {
 	req, err := http.NewRequest("GET",
 		fmt.Sprintf("%s/panel/api/inbounds/list", p.baseURL),
 		nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating request: %w", err)
-	}
-
-	for _, cookie := range p.cookies {
-		req.AddCookie(cookie)
 	}
 
 	for k, v := range p.headers {
